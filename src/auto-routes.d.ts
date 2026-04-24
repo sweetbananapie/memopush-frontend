@@ -37,6 +37,28 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/decks': RouteRecordInfo<
+      '/decks',
+      '/decks',
+      Record<never, never>,
+      Record<never, never>,
+      | '/decks/'
+      | '/decks/[id]'
+    >,
+    '/decks/': RouteRecordInfo<
+      '/decks/',
+      '/decks',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/decks/[id]': RouteRecordInfo<
+      '/decks/[id]',
+      '/decks/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
   }
 
   /**
@@ -53,6 +75,26 @@ declare module 'vue-router/auto-routes' {
     'src/routes/index.vue': {
       routes:
         | '/'
+      views:
+        | never
+    }
+    'src/routes/decks.vue': {
+      routes:
+        | '/decks'
+        | '/decks/'
+        | '/decks/[id]'
+      views:
+        | 'default'
+    }
+    'src/routes/decks/index.vue': {
+      routes:
+        | '/decks/'
+      views:
+        | never
+    }
+    'src/routes/decks/[id].vue': {
+      routes:
+        | '/decks/[id]'
       views:
         | never
     }

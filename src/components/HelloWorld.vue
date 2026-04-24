@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 </script>
 <template>
   <div>
-    <Button :variant="'default'">Click me</Button>
+    <Button :variant="'default'" @click="$router.push({ name: '/decks/' })"
+      >Click me</Button
+    >
   </div>
 </template>
