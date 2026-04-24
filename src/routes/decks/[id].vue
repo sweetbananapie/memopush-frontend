@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  ArrowLeftRight,
-  Lightbulb,
-  LightbulbOff,
-  Pencil,
-  Trash,
-  ChevronLeft,
-} from "lucide-vue-next";
+import { ChevronLeft } from "lucide-vue-next";
 import {
   Dialog,
   DialogContent,
@@ -33,11 +26,11 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import CardRow from "@/components/CardRow.vue";
 import dayjs from "@/plugins/dayjs";
 
 const route = useRoute();
@@ -47,16 +40,17 @@ const router = useRouter();
 const deckName = ref("English Vocabulary (B2)");
 
 // Mock data for cards
-const cards = ref([
+const cards = ref<any[]>([
   {
     id: "101",
     side1Word: "Serendipity",
     side1Example: "Finding that old book was pure serendipity.",
     side2Word: "Случайность",
     side2Example: "Найти ту старую книгу было чистой случайностью.",
-    lastShown: Date.now() - 86400000, // 1 day ago
-    dueDate: Date.now() + 86400000, // 1 day from now
+    lastShown: Date.now() - 86400000,
+    dueDate: Date.now() + 86400000,
     active: true,
+    frequency: '1_day'
   },
   {
     id: "102",
@@ -65,8 +59,9 @@ const cards = ref([
     side2Word: "Мимолетный",
     side2Example: "Слава в современном мире часто бывает мимолетной.",
     lastShown: Date.now() - 172800000,
-    dueDate: Date.now() - 3600000, // Overdue
+    dueDate: Date.now() - 3600000,
     active: false,
+    frequency: '7_days'
   },
   {
     id: "103",
@@ -77,24 +72,41 @@ const cards = ref([
     lastShown: Date.now() - 5000000,
     dueDate: Date.now() + 172800000,
     active: true,
+    frequency: '3_days'
   },
 ]);
 
-// Edit Modal State
-const isEditModalOpen = ref(false);
-const editingCard = ref<any>(null);
+// Single Row Editing State
+const editingCardId = ref<string | null>(null);
 
-// Delete Confirm State
-const isDeleteConfirmOpen = ref(false);
-const cardToDelete = ref<string | null>(null);
-
-const goBack = () => {
-  router.push("/decks");
+const rowRefs = ref<Record<string, any>>({});
+const setRowRef = (el: any, id: string) => {
+  if (el) rowRefs.value[id] = el;
 };
 
-const formatDate = (timestamp: number) => {
-  if (!timestamp) return "-";
-  return dayjs(timestamp).format("DD MMM YYYY, HH:mm");
+const handleEditStart = async (id: string, fieldToFocus?: string) => {
+  editingCardId.value = id;
+  if (fieldToFocus) {
+    await nextTick();
+    const row = rowRefs.value[id];
+    if (row && row.focusField) {
+      row.focusField(fieldToFocus);
+    }
+  }
+};
+
+const handleEditCancel = (id: string) => {
+  if (editingCardId.value === id) {
+    editingCardId.value = null;
+  }
+};
+
+const handleUpdateCard = (id: string, data: any) => {
+  const index = cards.value.findIndex((c) => c.id === id);
+  if (index !== -1) {
+    cards.value[index] = { ...data };
+    editingCardId.value = null; // Exit edit mode
+  }
 };
 
 const handleToggleActive = (id: string) => {
@@ -116,26 +128,9 @@ const handleReverse = (id: string) => {
   }
 };
 
-const handleEditClick = (id: string) => {
-  const card = cards.value.find((c) => c.id === id);
-  if (card) {
-    editingCard.value = { ...card };
-    isEditModalOpen.value = true;
-  }
-};
-
-const saveCard = () => {
-  if (editingCard.value) {
-    const index = cards.value.findIndex((c) => c.id === editingCard.value.id);
-    if (index !== -1) {
-      cards.value[index] = { ...editingCard.value };
-    } else {
-      // Create new
-      cards.value.push({ ...editingCard.value });
-    }
-  }
-  isEditModalOpen.value = false;
-};
+// Delete Confirm State
+const isDeleteConfirmOpen = ref(false);
+const cardToDelete = ref<string | null>(null);
 
 const handleDeleteClick = (id: string) => {
   cardToDelete.value = id;
@@ -150,18 +145,144 @@ const confirmDelete = () => {
   cardToDelete.value = null;
 };
 
-const handleCreateCard = () => {
-  editingCard.value = {
-    id: Date.now().toString(),
+const goBack = () => {
+  router.push("/decks");
+};
+
+// Import Modal State
+const isImportModalOpen = ref(false);
+const importText = ref("");
+
+const parseImportedCards = (text: string) => {
+  const cardsToCreate = [];
+  let parenLevel = 0;
+  let currentSegment = "";
+  const parsedCards: string[] = [];
+
+  // Split by newline outside of parentheses
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === "(") parenLevel++;
+    if (char === ")") parenLevel = Math.max(0, parenLevel - 1);
+
+    if (char === "\n" && parenLevel === 0) {
+      if (currentSegment.trim()) {
+        parsedCards.push(currentSegment.trim());
+      }
+      currentSegment = "";
+    } else {
+      currentSegment += char;
+    }
+  }
+  if (currentSegment.trim()) {
+    parsedCards.push(currentSegment.trim());
+  }
+
+  // Parse each card segment
+  parsedCards.forEach((cardStr) => {
+    let splitIdx = -1;
+    let pLevel = 0;
+    for (let i = 0; i < cardStr.length; i++) {
+      if (cardStr[i] === "(") pLevel++;
+      if (cardStr[i] === ")") pLevel = Math.max(0, pLevel - 1);
+      if (cardStr[i] === "-" && pLevel === 0) {
+        splitIdx = i;
+        break; // First dash outside parentheses
+      }
+    }
+
+    if (splitIdx === -1) return; // Invalid format
+
+    const side1Raw = cardStr.slice(0, splitIdx).trim();
+    const side2Raw = cardStr.slice(splitIdx + 1).trim();
+
+    const extractWordAndExample = (raw: string) => {
+      let word = raw;
+      let example = "";
+      const openIdx = raw.indexOf("(");
+      const closeIdx = raw.lastIndexOf(")");
+      if (openIdx !== -1 && closeIdx > openIdx) {
+        word = raw.slice(0, openIdx).trim();
+        example = raw.slice(openIdx + 1, closeIdx).trim();
+      }
+      return { word, example };
+    };
+
+    const s1 = extractWordAndExample(side1Raw);
+    const s2 = extractWordAndExample(side2Raw);
+
+    if (s1.word && s2.word) {
+      cardsToCreate.push({
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        side1Word: s1.word,
+        side1Example: s1.example,
+        side2Word: s2.word,
+        side2Example: s2.example,
+        lastShown: 0,
+        dueDate: Date.now() + 86400000,
+        active: true,
+        frequency: "1_day",
+      });
+    }
+  });
+
+  return cardsToCreate;
+};
+
+const handleImport = () => {
+  const newCards = parseImportedCards(importText.value);
+  if (newCards.length > 0) {
+    cards.value.push(...newCards);
+  }
+  isImportModalOpen.value = false;
+  importText.value = "";
+};
+
+// Add single card modal
+const isAddModalOpen = ref(false);
+const newCardForm = ref({
+  side1Word: "",
+  side1Example: "",
+  side2Word: "",
+  side2Example: "",
+});
+const newCardErrors = ref({ side1Word: false, side2Word: false });
+
+const handleOpenAddModal = () => {
+  newCardForm.value = {
     side1Word: "",
     side1Example: "",
     side2Word: "",
     side2Example: "",
-    lastShown: 0,
-    dueDate: Date.now() + 86400000,
-    active: true,
   };
-  isEditModalOpen.value = true;
+  newCardErrors.value = { side1Word: false, side2Word: false };
+  isAddModalOpen.value = true;
+};
+
+const handleAddCard = () => {
+  newCardErrors.value = { side1Word: false, side2Word: false };
+  let valid = true;
+
+  if (!newCardForm.value.side1Word.trim()) {
+    newCardErrors.value.side1Word = true;
+    valid = false;
+  }
+  if (!newCardForm.value.side2Word.trim()) {
+    newCardErrors.value.side2Word = true;
+    valid = false;
+  }
+
+  if (valid) {
+    cards.value.push({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      ...newCardForm.value,
+      lastShown: 0,
+      dueDate: Date.now() + 86400000,
+      active: true,
+      frequency: "1_day",
+    });
+    isAddModalOpen.value = false;
+  }
 };
 </script>
 
@@ -172,8 +293,11 @@ const handleCreateCard = () => {
       <Button variant="ghost" size="icon" @click="goBack">
         <ChevronLeft class="w-6 h-6" />
       </Button>
-      <h1 class="text-3xl font-bold tracking-tight flex-1">{{ deckName }}</h1>
-      <Button @click="handleCreateCard">Add Card</Button>
+      <h1 class="text-xl font-medium tracking-tight flex-1">{{ deckName }}</h1>
+      <div class="flex space-x-2">
+        <Button variant="outline" @click="isImportModalOpen = true">Import Cards</Button>
+        <Button @click="handleOpenAddModal">Add Card</Button>
+      </div>
     </div>
 
     <!-- Cards Table -->
@@ -184,131 +308,85 @@ const handleCreateCard = () => {
             <TableHead class="w-[30%]">Side 1</TableHead>
             <TableHead class="w-[50px] text-center"></TableHead>
             <TableHead class="w-[30%]">Side 2</TableHead>
-            <TableHead class="hidden md:table-cell">Last Shown</TableHead>
-            <TableHead class="hidden lg:table-cell">Due Date</TableHead>
+            <TableHead class="w-[120px]">Frequency</TableHead>
+            <TableHead class="">Last Shown</TableHead>
+            <TableHead class="">Due Date</TableHead>
             <TableHead class="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow
+          <CardRow
             v-for="card in cards"
             :key="card.id"
-            :class="[
-              'transition-colors hover:bg-gray-50',
-              !card.active ? 'opacity-50 grayscale-[20%]' : '',
-            ]"
-          >
-            <!-- Side 1 -->
-            <TableCell>
-              <div class="font-medium text-base">{{ card.side1Word }}</div>
-              <div class="text-sm text-muted-foreground mt-1 italic">
-                {{ card.side1Example }}
-              </div>
-            </TableCell>
-
-            <!-- Reverse Action -->
-            <TableCell class="text-center px-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                @click="handleReverse(card.id)"
-                class="text-gray-400 hover:text-blue-500 rounded-full"
-                title="Reverse Sides"
-              >
-                <ArrowLeftRight class="w-4 h-4" />
-              </Button>
-            </TableCell>
-
-            <!-- Side 2 -->
-            <TableCell>
-              <div class="font-medium text-base">{{ card.side2Word }}</div>
-              <div class="text-sm text-muted-foreground mt-1 italic">
-                {{ card.side2Example }}
-              </div>
-            </TableCell>
-
-            <!-- Last Shown -->
-            <TableCell class="hidden md:table-cell text-sm text-gray-500">
-              {{ formatDate(card.lastShown) }}
-            </TableCell>
-
-            <!-- Due Date -->
-            <TableCell class="hidden lg:table-cell text-sm">
-              <span
-                :class="
-                  card.dueDate < Date.now()
-                    ? 'text-red-500 font-medium'
-                    : 'text-gray-500'
-                "
-              >
-                {{ formatDate(card.dueDate) }}
-              </span>
-            </TableCell>
-
-            <!-- Actions -->
-            <TableCell class="text-right">
-              <div class="flex items-center justify-end space-x-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  @click="handleToggleActive(card.id)"
-                  :class="
-                    card.active
-                      ? 'text-yellow-500 hover:text-yellow-600'
-                      : 'text-gray-400'
-                  "
-                >
-                  <Lightbulb v-if="card.active" class="w-4 h-4" />
-                  <LightbulbOff v-else class="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  @click="handleEditClick(card.id)"
-                  class="text-blue-500 hover:text-blue-600"
-                >
-                  <Pencil class="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  @click="handleDeleteClick(card.id)"
-                  class="text-red-500 hover:text-red-600"
-                >
-                  <Trash class="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
+            :ref="(el) => setRowRef(el, card.id)"
+            :card="card"
+            :is-editing="editingCardId === card.id"
+            @edit-start="handleEditStart"
+            @edit-cancel="handleEditCancel"
+            @update="handleUpdateCard"
+            @delete="handleDeleteClick"
+            @toggle-active="handleToggleActive"
+            @reverse="handleReverse"
+          />
         </TableBody>
       </Table>
     </div>
 
-    <!-- Edit Modal -->
-    <Dialog v-model:open="isEditModalOpen">
+    <!-- Import Modal -->
+    <Dialog v-model:open="isImportModalOpen">
+      <DialogContent class="sm:max-w-[700px]">
+        <DialogHeader>
+          <DialogTitle>Import Cards</DialogTitle>
+          <DialogDescription>
+            Paste your cards here. Format: <code>Word 1 (Example 1) - Word 2 (Example 2)</code>. 
+            <br>Examples are optional. Each card on a new line. Multiline examples within parentheses are supported.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div class="py-4">
+          <textarea
+            v-model="importText"
+            class="flex min-h-[300px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Apple (A fruit) - Яблоко (Фрукт)&#10;Banana - Банан"
+          ></textarea>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="isImportModalOpen = false">Cancel</Button>
+          <Button @click="handleImport">Import</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Add Card Modal -->
+    <Dialog v-model:open="isAddModalOpen">
       <DialogContent class="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{{
-            editingCard?.id && editingCard.side1Word
-              ? "Edit Card"
-              : "Add New Card"
-          }}</DialogTitle>
+          <DialogTitle>Add New Card</DialogTitle>
           <DialogDescription>
             Update the card details below. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 
-        <div class="grid grid-cols-2 gap-6 py-4" v-if="editingCard">
+        <div class="grid grid-cols-2 gap-6 py-4">
           <!-- Side 1 Form -->
           <div class="space-y-4">
             <h4 class="font-medium border-b pb-2">Side 1</h4>
             <div class="space-y-2">
-              <Label for="side1Word">Word / Term</Label>
-              <Input id="side1Word" v-model="editingCard.side1Word" />
+              <Label for="side1Word">Word / Term *</Label>
+              <Input
+                id="side1Word"
+                v-model="newCardForm.side1Word"
+                :class="newCardErrors.side1Word ? 'border-red-500 ring-1 ring-red-500' : ''"
+              />
             </div>
             <div class="space-y-2">
               <Label for="side1Example">Usage Example</Label>
-              <Input id="side1Example" v-model="editingCard.side1Example" />
+              <textarea
+                id="side1Example"
+                v-model="newCardForm.side1Example"
+                class="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              ></textarea>
             </div>
           </div>
 
@@ -316,21 +394,27 @@ const handleCreateCard = () => {
           <div class="space-y-4">
             <h4 class="font-medium border-b pb-2">Side 2</h4>
             <div class="space-y-2">
-              <Label for="side2Word">Word / Term</Label>
-              <Input id="side2Word" v-model="editingCard.side2Word" />
+              <Label for="side2Word">Word / Term *</Label>
+              <Input
+                id="side2Word"
+                v-model="newCardForm.side2Word"
+                :class="newCardErrors.side2Word ? 'border-red-500 ring-1 ring-red-500' : ''"
+              />
             </div>
             <div class="space-y-2">
               <Label for="side2Example">Usage Example</Label>
-              <Input id="side2Example" v-model="editingCard.side2Example" />
+              <textarea
+                id="side2Example"
+                v-model="newCardForm.side2Example"
+                class="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              ></textarea>
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="isEditModalOpen = false"
-            >Cancel</Button
-          >
-          <Button type="submit" @click="saveCard">Save changes</Button>
+          <Button variant="outline" @click="isAddModalOpen = false">Cancel</Button>
+          <Button type="submit" @click="handleAddCard">Add Card</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -346,14 +430,13 @@ const handleCreateCard = () => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="isDeleteConfirmOpen = false"
-            >Cancel</AlertDialogCancel
-          >
+          <AlertDialogCancel @click="isDeleteConfirmOpen = false">Cancel</AlertDialogCancel>
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 text-white"
             @click="confirmDelete"
-            >Delete Card</AlertDialogAction
           >
+            Delete Card
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
