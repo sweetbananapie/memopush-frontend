@@ -10,5 +10,5 @@ pnpm add @vueuse/components @vueuse/core dayjs lodash-es maska pinia pinia-plugi
 
 pnpm add tailwindcss @tailwindcss/vite
 
-pnpm dlx shadcn-vue@latest init
+pnpm dlx shadcn-vue@latest init --preset a3wOln72 --template vite
 ```
