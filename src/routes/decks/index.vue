@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import deckService from "@/services/deckService";
 
 const router = useRouter();
 
@@ -88,13 +89,23 @@ const handleCreateDeck = () => {
   editingDeck.value = { id: Date.now().toString(), name: "New Deck" };
   isEditModalOpen.value = true;
 };
+
+const handleStart = async () => {
+  const sw = await navigator.serviceWorker.ready;
+  await sw.active?.postMessage("message");
+};
 </script>
 
 <template>
   <div class="container mx-auto py-8 px-4 max-w-5xl">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold tracking-tight">My Decks</h1>
-      <Button @click="handleCreateDeck">Create Deck</Button>
+      <div class="space-x-4">
+        <Button variant="secondary" @click="handleStart()"
+          >Start Session</Button
+        >
+        <Button @click="handleCreateDeck">Create Deck</Button>
+      </div>
     </div>
 
     <!-- Grid Layout: Cards take half screen on md/lg displays -->

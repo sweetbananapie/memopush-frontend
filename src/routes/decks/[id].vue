@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import CardRow from "@/components/CardRow.vue";
 import dayjs from "@/plugins/dayjs";
+import type { Card } from "@/services/deckService";
 
 const route = useRoute();
 const router = useRouter();
@@ -50,7 +51,7 @@ const cards = ref<any[]>([
     lastShown: Date.now() - 86400000,
     dueDate: Date.now() + 86400000,
     active: true,
-    frequency: '1_day'
+    frequency: "1_day",
   },
   {
     id: "102",
@@ -61,7 +62,7 @@ const cards = ref<any[]>([
     lastShown: Date.now() - 172800000,
     dueDate: Date.now() - 3600000,
     active: false,
-    frequency: '7_days'
+    frequency: "7_days",
   },
   {
     id: "103",
@@ -72,7 +73,7 @@ const cards = ref<any[]>([
     lastShown: Date.now() - 5000000,
     dueDate: Date.now() + 172800000,
     active: true,
-    frequency: '3_days'
+    frequency: "3_days",
   },
 ]);
 
@@ -154,7 +155,7 @@ const isImportModalOpen = ref(false);
 const importText = ref("");
 
 const parseImportedCards = (text: string) => {
-  const cardsToCreate = [];
+  const cardsToCreate: Card[] = [];
   let parenLevel = 0;
   let currentSegment = "";
   const parsedCards: string[] = [];
@@ -295,7 +296,9 @@ const handleAddCard = () => {
       </Button>
       <h1 class="text-xl font-medium tracking-tight flex-1">{{ deckName }}</h1>
       <div class="flex space-x-2">
-        <Button variant="outline" @click="isImportModalOpen = true">Import Cards</Button>
+        <Button variant="outline" @click="isImportModalOpen = true"
+          >Import Cards</Button
+        >
         <Button @click="handleOpenAddModal">Add Card</Button>
       </div>
     </div>
@@ -338,11 +341,13 @@ const handleAddCard = () => {
         <DialogHeader>
           <DialogTitle>Import Cards</DialogTitle>
           <DialogDescription>
-            Paste your cards here. Format: <code>Word 1 (Example 1) - Word 2 (Example 2)</code>. 
-            <br>Examples are optional. Each card on a new line. Multiline examples within parentheses are supported.
+            Paste your cards here. Format:
+            <code>Word 1 (Example 1) - Word 2 (Example 2)</code>. <br />Examples
+            are optional. Each card on a new line. Multiline examples within
+            parentheses are supported.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div class="py-4">
           <textarea
             v-model="importText"
@@ -352,7 +357,9 @@ const handleAddCard = () => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="isImportModalOpen = false">Cancel</Button>
+          <Button variant="outline" @click="isImportModalOpen = false"
+            >Cancel</Button
+          >
           <Button @click="handleImport">Import</Button>
         </DialogFooter>
       </DialogContent>
@@ -377,7 +384,11 @@ const handleAddCard = () => {
               <Input
                 id="side1Word"
                 v-model="newCardForm.side1Word"
-                :class="newCardErrors.side1Word ? 'border-red-500 ring-1 ring-red-500' : ''"
+                :class="
+                  newCardErrors.side1Word
+                    ? 'border-red-500 ring-1 ring-red-500'
+                    : ''
+                "
               />
             </div>
             <div class="space-y-2">
@@ -398,7 +409,11 @@ const handleAddCard = () => {
               <Input
                 id="side2Word"
                 v-model="newCardForm.side2Word"
-                :class="newCardErrors.side2Word ? 'border-red-500 ring-1 ring-red-500' : ''"
+                :class="
+                  newCardErrors.side2Word
+                    ? 'border-red-500 ring-1 ring-red-500'
+                    : ''
+                "
               />
             </div>
             <div class="space-y-2">
@@ -413,7 +428,9 @@ const handleAddCard = () => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="isAddModalOpen = false">Cancel</Button>
+          <Button variant="outline" @click="isAddModalOpen = false"
+            >Cancel</Button
+          >
           <Button type="submit" @click="handleAddCard">Add Card</Button>
         </DialogFooter>
       </DialogContent>
@@ -430,7 +447,9 @@ const handleAddCard = () => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="isDeleteConfirmOpen = false">Cancel</AlertDialogCancel>
+          <AlertDialogCancel @click="isDeleteConfirmOpen = false"
+            >Cancel</AlertDialogCancel
+          >
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 text-white"
             @click="confirmDelete"
