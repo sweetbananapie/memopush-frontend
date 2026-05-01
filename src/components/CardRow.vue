@@ -14,7 +14,7 @@ import dayjs from "@/plugins/dayjs";
 import { onClickOutside } from "@vueuse/core";
 import cardFrequencyService from "@/services/cardFrequencyService";
 
-const frequencies = cardFrequencyService.getFrequencies();
+const frequencies = computed(() => cardFrequencyService.getFrequencies());
 
 const props = defineProps<{
   card: {
@@ -43,8 +43,8 @@ const formatDate = (timestamp: number) => {
 };
 
 const frequencyLabel = computed(() => {
-  const freq = frequencies.find((f) => f.value === props.card.frequency);
-  return freq ? freq.label : "-";
+  if (!props.card.frequency) return "-";
+  return cardFrequencyService.getFrequencyLabelById(props.card.frequency);
 });
 
 const isFrequencyOpen = ref(false);
@@ -150,12 +150,16 @@ const resetTimeout = () => {
         >
           <div
             v-for="freq in frequencies"
-            :key="freq.value"
+            :key="cardFrequencyService.getFrequencyId(freq)"
             class="px-3 py-2 cursor-pointer hover:bg-gray-100"
-            :class="freq.value === card.frequency ? 'bg-blue-50' : ''"
-            @click="selectFrequency(freq.value)"
+            :class="
+              cardFrequencyService.getFrequencyId(freq) === card.frequency
+                ? 'bg-blue-50'
+                : ''
+            "
+            @click="selectFrequency(cardFrequencyService.getFrequencyId(freq))"
           >
-            {{ freq.label }}
+            {{ cardFrequencyService.getFrequencyLabel(freq) }}
           </div>
         </div>
         <div

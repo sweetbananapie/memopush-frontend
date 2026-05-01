@@ -31,7 +31,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CardRow from "@/components/CardRow.vue";
-import dayjs from "@/plugins/dayjs";
 import deckService, { type Card } from "@/services/deckService";
 import cardFrequencyService from "@/services/cardFrequencyService";
 
@@ -54,7 +53,7 @@ const fullEditForm = ref({
   side2Word: "",
   side2Example: "",
   timeoutUntil: Date.now(),
-  frequency: "1_day",
+  frequency: cardFrequencyService.getFallbackFrequencyId(),
   active: true,
 });
 const fullEditErrors = ref({ side1Word: false, side2Word: false });
@@ -113,7 +112,10 @@ const handleOpenFullEdit = async (id: string, field?: string) => {
     side2Word: card.side2Word || "",
     side2Example: card.side2Example || "",
     timeoutUntil: card.timeoutUntil || Date.now(),
-    frequency: card.frequency || "1_day",
+    frequency:
+      cardFrequencyService.resolveFrequency(card.frequency)
+        ? card.frequency
+        : cardFrequencyService.getFallbackFrequencyId(),
     active: card.active,
   };
   fullEditErrors.value = { side1Word: false, side2Word: false };
@@ -239,24 +241,8 @@ const goBack = () => {
 const isImportModalOpen = ref(false);
 const importText = ref("");
 
-const calculateTimeoutUntil = (frequency: string): number => {
-  const frequencyMap: { [key: string]: { unit: string; value: number } } = {
-    "1_min": { unit: "minute", value: 1 },
-    "1_hour": { unit: "hour", value: 1 },
-    "1_day": { unit: "day", value: 1 },
-    "3_days": { unit: "day", value: 3 },
-    "7_days": { unit: "day", value: 7 },
-    "14_days": { unit: "day", value: 14 },
-    "30_days": { unit: "day", value: 30 },
-    custom_1_week: { unit: "day", value: 7 },
-    custom_2_weeks: { unit: "day", value: 14 },
-  };
-  const freq = frequencyMap[frequency];
-  if (!freq) return dayjs().add(1, "day").valueOf();
-  return dayjs()
-    .add(freq.value, freq.unit as any)
-    .valueOf();
-};
+const calculateTimeoutUntil = (frequency: string): number =>
+  cardFrequencyService.calculateTimeoutUntil(frequency);
 
 const parseImportedCards = (text: string): Card[] => {
   const cardsToCreate: Card[] = [];
@@ -323,9 +309,11 @@ const parseImportedCards = (text: string): Card[] => {
         side1Example: s1.example,
         side2Word: s2.word,
         side2Example: s2.example,
-        timeoutUntil: calculateTimeoutUntil("1_day"),
+        timeoutUntil: calculateTimeoutUntil(
+          cardFrequencyService.getFallbackFrequencyId(),
+        ),
         active: true,
-        frequency: "1_day",
+        frequency: cardFrequencyService.getFallbackFrequencyId(),
       });
     }
   });
@@ -364,7 +352,7 @@ const newCardForm = ref({
   side1Example: "",
   side2Word: "",
   side2Example: "",
-  frequency: "1_day",
+  frequency: cardFrequencyService.getFallbackFrequencyId(),
 });
 const newCardErrors = ref({ side1Word: false, side2Word: false });
 
@@ -374,7 +362,7 @@ const handleOpenAddModal = () => {
     side1Example: "",
     side2Word: "",
     side2Example: "",
-    frequency: "1_day",
+    frequency: cardFrequencyService.getFallbackFrequencyId(),
   };
   newCardErrors.value = { side1Word: false, side2Word: false };
   isAddModalOpen.value = true;
@@ -601,10 +589,10 @@ const loadCards = async () => {
             >
               <option
                 v-for="freq in cardFrequencyService.getFrequencies()"
-                :key="freq.value"
-                :value="freq.value"
+                :key="cardFrequencyService.getFrequencyId(freq)"
+                :value="cardFrequencyService.getFrequencyId(freq)"
               >
-                {{ freq.label }}
+                {{ cardFrequencyService.getFrequencyLabel(freq) }}
               </option>
             </select>
           </div>
@@ -693,10 +681,10 @@ const loadCards = async () => {
               >
                 <option
                   v-for="freq in cardFrequencyService.getFrequencies()"
-                  :key="freq.value"
-                  :value="freq.value"
+                  :key="cardFrequencyService.getFrequencyId(freq)"
+                  :value="cardFrequencyService.getFrequencyId(freq)"
                 >
-                  {{ freq.label }}
+                  {{ cardFrequencyService.getFrequencyLabel(freq) }}
                 </option>
               </select>
             </div>

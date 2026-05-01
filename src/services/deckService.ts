@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import cardFrequencyService from "@/services/cardFrequencyService";
 
 const LAST_SHOWN_CARDS_LIMIT = 5;
 const DB_NAME = "memopush";
@@ -373,36 +374,15 @@ class DeckService {
   }
 
   private increaseFrequency(frequency: string): string {
-    const frequencies = ["1_day", "3_days", "7_days", "14_days", "30_days"];
-    const currentIndex = frequencies.indexOf(frequency);
-    return frequencies[Math.min(currentIndex + 1, frequencies.length - 1)];
+    return cardFrequencyService.getNextFrequencyId(frequency);
   }
 
   private decreaseFrequency(frequency: string): string {
-    const frequencies = ["1_day", "3_days", "7_days", "14_days", "30_days"];
-    const currentIndex = frequencies.indexOf(frequency);
-    return frequencies[Math.max(currentIndex - 1, 0)];
+    return cardFrequencyService.getPreviousFrequencyId(frequency);
   }
 
   private calculateTimeoutUntil(frequency: string): number {
-    const frequencyMap: { [key: string]: { unit: string; value: number } } = {
-      "1_min": { unit: "minute", value: 1 },
-      "1_hour": { unit: "hour", value: 1 },
-      "1_day": { unit: "day", value: 1 },
-      "3_days": { unit: "day", value: 3 },
-      "7_days": { unit: "day", value: 7 },
-      "14_days": { unit: "day", value: 14 },
-      "30_days": { unit: "day", value: 30 },
-    };
-    const freq = frequencyMap[frequency];
-    if (!freq) return Date.now() + 86400000; // Default to 1 day
-    const ms =
-      {
-        minute: 60000,
-        hour: 3600000,
-        day: 86400000,
-      }[freq.unit] || 86400000;
-    return Date.now() + ms * freq.value;
+    return cardFrequencyService.calculateTimeoutUntil(frequency);
   }
 
   async start(sw: ServiceWorkerGlobalScope) {

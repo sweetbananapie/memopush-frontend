@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { ChevronLeft } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, ChevronLeft, GripVertical } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import cardFrequencyService, {
+  FREQUENCY_UNITS,
   type Frequency,
+  type FrequencyUnit,
 } from "@/services/cardFrequencyService";
 
 const router = useRouter();
@@ -33,62 +35,134 @@ const frequencies = ref<Frequency[]>([]);
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
+const addError = ref("");
+const editError = ref("");
 
-const newFrequency = ref({
-  label: "",
-  minutes: 1,
+const newFrequency = ref<Frequency>({
+  value: 1,
+  unit: "minutes",
 });
 
 const editingFrequency = ref<Frequency | null>(null);
+const editingOriginalId = ref<string | null>(null);
 const frequencyToDelete = ref<string | null>(null);
+const draggedFrequencyId = ref<string | null>(null);
 
-onMounted(() => {
+const loadFrequencies = () => {
   frequencies.value = cardFrequencyService.getFrequencies();
-});
+};
+
+onMounted(loadFrequencies);
+
+const getFrequencyId = (frequency: Frequency) =>
+  cardFrequencyService.getFrequencyId(frequency);
+
+const getFrequencyLabel = (frequency: Frequency) =>
+  cardFrequencyService.getFrequencyLabel(frequency);
+
+const moveFrequency = (draggedId: string, targetId: string) => {
+  if (draggedId === targetId) return;
+
+  const draggedIndex = frequencies.value.findIndex(
+    (freq) => getFrequencyId(freq) === draggedId,
+  );
+  const targetIndex = frequencies.value.findIndex(
+    (freq) => getFrequencyId(freq) === targetId,
+  );
+
+  if (draggedIndex === -1 || targetIndex === -1) return;
+
+  const updated = [...frequencies.value];
+  const [moved] = updated.splice(draggedIndex, 1);
+  updated.splice(targetIndex, 0, moved);
+  frequencies.value = updated;
+
+  cardFrequencyService.reorderFrequencies(updated.map((freq) => getFrequencyId(freq)));
+};
+
+const handleDragStart = (frequency: Frequency) => {
+  draggedFrequencyId.value = getFrequencyId(frequency);
+};
+
+const handleDrop = (targetFrequency: Frequency) => {
+  if (!draggedFrequencyId.value) return;
+  moveFrequency(draggedFrequencyId.value, getFrequencyId(targetFrequency));
+  draggedFrequencyId.value = null;
+};
+
+const moveFrequencyByStep = (frequency: Frequency, direction: "up" | "down") => {
+  const currentId = getFrequencyId(frequency);
+  const currentIndex = frequencies.value.findIndex(
+    (item) => getFrequencyId(item) === currentId,
+  );
+
+  if (currentIndex === -1) return;
+
+  const targetIndex =
+    direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+  if (targetIndex < 0 || targetIndex >= frequencies.value.length) return;
+
+  moveFrequency(currentId, getFrequencyId(frequencies.value[targetIndex]));
+};
 
 const handleAddFrequency = () => {
-  if (newFrequency.value.label.trim() && newFrequency.value.minutes > 0) {
-    cardFrequencyService.addFrequency(
-      newFrequency.value.label,
-      newFrequency.value.minutes,
-    );
-    frequencies.value = cardFrequencyService.getFrequencies();
-    isAddModalOpen.value = false;
-    newFrequency.value = { label: "", minutes: 1 };
+  addError.value = "";
+  const result = cardFrequencyService.addFrequency(
+    newFrequency.value.value,
+    newFrequency.value.unit,
+  );
+
+  if (!result.ok) {
+    addError.value = "Такая частота уже есть";
+    return;
   }
+
+  loadFrequencies();
+  isAddModalOpen.value = false;
+  newFrequency.value = { value: 1, unit: "minutes" };
 };
 
 const handleEditFrequency = (freq: Frequency) => {
   editingFrequency.value = { ...freq };
+  editingOriginalId.value = getFrequencyId(freq);
+  editError.value = "";
   isEditModalOpen.value = true;
 };
 
 const handleSaveFrequency = () => {
-  if (
-    editingFrequency.value &&
-    editingFrequency.value.label.trim() &&
-    editingFrequency.value.minutes > 0
-  ) {
-    cardFrequencyService.updateFrequency(
-      editingFrequency.value.value,
-      editingFrequency.value.label,
-      editingFrequency.value.minutes,
-    );
-    frequencies.value = cardFrequencyService.getFrequencies();
-    isEditModalOpen.value = false;
-    editingFrequency.value = null;
+  if (!editingFrequency.value || !editingOriginalId.value) return;
+  editError.value = "";
+
+  const result = cardFrequencyService.updateFrequency(
+    editingOriginalId.value,
+    editingFrequency.value.value,
+    editingFrequency.value.unit,
+  );
+
+  if (!result.ok) {
+    editError.value =
+      result.error === "duplicate"
+        ? "Такая частота уже есть"
+        : "Не удалось сохранить";
+    return;
   }
+
+  loadFrequencies();
+  isEditModalOpen.value = false;
+  editingFrequency.value = null;
+  editingOriginalId.value = null;
 };
 
-const handleDeleteClick = (value: string) => {
-  frequencyToDelete.value = value;
+const handleDeleteClick = (id: string) => {
+  frequencyToDelete.value = id;
   isDeleteConfirmOpen.value = true;
 };
 
 const confirmDelete = () => {
   if (frequencyToDelete.value) {
     cardFrequencyService.deleteFrequency(frequencyToDelete.value);
-    frequencies.value = cardFrequencyService.getFrequencies();
+    loadFrequencies();
   }
   isDeleteConfirmOpen.value = false;
   frequencyToDelete.value = null;
@@ -96,15 +170,23 @@ const confirmDelete = () => {
 
 const handleResetDefaults = () => {
   cardFrequencyService.resetToDefaults();
-  frequencies.value = cardFrequencyService.getFrequencies();
+  loadFrequencies();
 };
 
 const goBack = () => {
   router.push("/decks");
 };
 
-const isDefaultFrequency = (value: string): boolean => {
-  return ["1_min", "1_day", "7_days", "30_days"].includes(value);
+const getUnitLabel = (unit: FrequencyUnit): string => {
+  const labels: Record<FrequencyUnit, string> = {
+    minutes: "minutes",
+    hours: "hours",
+    days: "days",
+    weeks: "weeks",
+    months: "months",
+    years: "years",
+  };
+  return labels[unit];
 };
 </script>
 
@@ -134,14 +216,47 @@ const isDefaultFrequency = (value: string): boolean => {
       <div class="space-y-3">
         <div
           v-for="freq in frequencies"
-          :key="freq.value"
+          :key="getFrequencyId(freq)"
+          draggable="true"
+          @dragstart="handleDragStart(freq)"
+          @dragover.prevent
+          @drop="handleDrop(freq)"
           class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
         >
-          <div>
-            <p class="font-medium">{{ freq.label }}</p>
-            <p class="text-sm text-gray-600">{{ freq.minutes }} minutes</p>
+          <div class="flex items-center gap-3">
+            <GripVertical class="hidden md:block w-4 h-4 text-gray-400 cursor-grab" />
+            <div>
+              <p class="font-medium">{{ getFrequencyLabel(freq) }}</p>
+              <p class="text-sm text-gray-600">
+                {{ freq.value }} {{ getUnitLabel(freq.unit) }}
+              </p>
+            </div>
           </div>
-          <div class="space-x-2">
+          <div class="flex items-center gap-2">
+            <div class="flex md:hidden items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                class="h-8 w-8"
+                :disabled="frequencies[0] && getFrequencyId(freq) === getFrequencyId(frequencies[0])"
+                @click="moveFrequencyByStep(freq, 'up')"
+              >
+                <ArrowUp class="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                class="h-8 w-8"
+                :disabled="
+                  frequencies[frequencies.length - 1] &&
+                  getFrequencyId(freq) ===
+                    getFrequencyId(frequencies[frequencies.length - 1])
+                "
+                @click="moveFrequencyByStep(freq, 'down')"
+              >
+                <ArrowDown class="w-4 h-4" />
+              </Button>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -152,8 +267,7 @@ const isDefaultFrequency = (value: string): boolean => {
             <Button
               variant="outline"
               size="sm"
-              :disabled="isDefaultFrequency(freq.value)"
-              @click="handleDeleteClick(freq.value)"
+              @click="handleDeleteClick(getFrequencyId(freq))"
             >
               Delete
             </Button>
@@ -173,21 +287,24 @@ const isDefaultFrequency = (value: string): boolean => {
         </DialogHeader>
         <div class="grid gap-4 py-4">
           <div class="space-y-2">
-            <Label for="label">Label</Label>
-            <Input
-              id="label"
-              v-model="newFrequency.label"
-              placeholder="e.g., 2 weeks"
-            />
-          </div>
-          <div class="space-y-2">
-            <Label for="minutes">Minutes</Label>
-            <Input
-              id="minutes"
-              v-model.number="newFrequency.minutes"
-              type="number"
-              min="1"
-            />
+            <Label>Frequency</Label>
+            <div class="flex gap-2 items-center">
+              <Input
+                id="value"
+                v-model.number="newFrequency.value"
+                type="number"
+                min="1"
+              />
+              <select
+                v-model="newFrequency.unit"
+                class="w-full px-3 py-2 border border-input rounded-md shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option v-for="unit in FREQUENCY_UNITS" :key="unit" :value="unit">
+                  {{ getUnitLabel(unit) }}
+                </option>
+              </select>
+            </div>
+            <p v-if="addError" class="text-sm text-red-600">{{ addError }}</p>
           </div>
         </div>
         <DialogFooter>
@@ -210,22 +327,24 @@ const isDefaultFrequency = (value: string): boolean => {
         </DialogHeader>
         <div v-if="editingFrequency" class="grid gap-4 py-4">
           <div class="space-y-2">
-            <Label for="edit-label">Label</Label>
-            <Input
-              id="edit-label"
-              v-model="editingFrequency.label"
-              :disabled="isDefaultFrequency(editingFrequency.value)"
-            />
-          </div>
-          <div class="space-y-2">
-            <Label for="edit-minutes">Minutes</Label>
-            <Input
-              id="edit-minutes"
-              v-model.number="editingFrequency.minutes"
-              type="number"
-              min="1"
-              :disabled="isDefaultFrequency(editingFrequency.value)"
-            />
+            <Label>Frequency</Label>
+            <div class="flex gap-2 items-center">
+              <Input
+                id="edit-value"
+                v-model.number="editingFrequency.value"
+                type="number"
+                min="1"
+              />
+              <select
+                v-model="editingFrequency.unit"
+                class="w-full px-3 py-2 border border-input rounded-md shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option v-for="unit in FREQUENCY_UNITS" :key="unit" :value="unit">
+                  {{ getUnitLabel(unit) }}
+                </option>
+              </select>
+            </div>
+            <p v-if="editError" class="text-sm text-red-600">{{ editError }}</p>
           </div>
         </div>
         <DialogFooter>
