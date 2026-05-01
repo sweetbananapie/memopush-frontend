@@ -59,6 +59,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/settings': RouteRecordInfo<
+      '/settings',
+      '/settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -95,6 +102,12 @@ declare module 'vue-router/auto-routes' {
     'src/routes/decks/[id].vue': {
       routes:
         | '/decks/[id]'
+      views:
+        | never
+    }
+    'src/routes/settings.vue': {
+      routes:
+        | '/settings'
       views:
         | never
     }
