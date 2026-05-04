@@ -25,7 +25,8 @@ export default defineConfig({
       filename: "sw.ts",
       registerType: "autoUpdate",
       injectManifest: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}"],
+        // globPatterns: ["**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}"],
+        injectionPoint: undefined,
       },
       devOptions: {
         enabled: true,
