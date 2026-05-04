@@ -64,10 +64,10 @@ const moveFrequency = (draggedId: string, targetId: string) => {
   if (draggedId === targetId) return;
 
   const draggedIndex = frequencies.value.findIndex(
-    (freq) => getFrequencyId(freq) === draggedId
+    (freq) => getFrequencyId(freq) === draggedId,
   );
   const targetIndex = frequencies.value.findIndex(
-    (freq) => getFrequencyId(freq) === targetId
+    (freq) => getFrequencyId(freq) === targetId,
   );
 
   if (draggedIndex === -1 || targetIndex === -1) return;
@@ -78,7 +78,7 @@ const moveFrequency = (draggedId: string, targetId: string) => {
   frequencies.value = updated;
 
   cardFrequencyService.reorderFrequencies(
-    updated.map((freq) => getFrequencyId(freq))
+    updated.map((freq) => getFrequencyId(freq)),
   );
 };
 
@@ -94,11 +94,11 @@ const handleDrop = (targetFrequency: Frequency) => {
 
 const moveFrequencyByStep = (
   frequency: Frequency,
-  direction: "up" | "down"
+  direction: "up" | "down",
 ) => {
   const currentId = getFrequencyId(frequency);
   const currentIndex = frequencies.value.findIndex(
-    (item) => getFrequencyId(item) === currentId
+    (item) => getFrequencyId(item) === currentId,
   );
 
   if (currentIndex === -1) return;
@@ -114,7 +114,7 @@ const handleAddFrequency = () => {
   addError.value = "";
   const result = cardFrequencyService.addFrequency(
     newFrequency.value.value,
-    newFrequency.value.unit
+    newFrequency.value.unit,
   );
 
   if (!result.ok) {
@@ -141,7 +141,7 @@ const handleSaveFrequency = () => {
   const result = cardFrequencyService.updateFrequency(
     editingOriginalId.value,
     editingFrequency.value.value,
-    editingFrequency.value.unit
+    editingFrequency.value.unit,
   );
 
   if (!result.ok) {
@@ -204,19 +204,19 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
         <Button variant="ghost" size="icon" @click="goBack">
           <ChevronLeft class="w-6 h-6" />
         </Button>
-        <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 class="text-3xl font-bold tracking-tight">Настройки</h1>
       </div>
     </div>
 
     <!-- Frequencies Section -->
     <div class="bg-white rounded-lg border shadow-sm p-6">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-semibold">Card Review Frequencies</h2>
+        <h2 class="text-xl font-semibold">Возможные частоты показа карточек</h2>
         <div class="space-x-2">
           <Button variant="outline" @click="handleResetDefaults">
-            Reset to Defaults
+            Сбросить
           </Button>
-          <Button @click="isAddModalOpen = true">Add Frequency</Button>
+          <Button @click="isAddModalOpen = true">Добавить</Button>
         </div>
       </div>
 
@@ -275,14 +275,14 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
               size="sm"
               @click="handleEditFrequency(freq)"
             >
-              Edit
+              Изменить
             </Button>
             <Button
               variant="outline"
               size="sm"
               @click="handleDeleteClick(getFrequencyId(freq))"
             >
-              Delete
+              Удалить
             </Button>
           </div>
         </div>
@@ -293,9 +293,9 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
     <Dialog v-model:open="isAddModalOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Frequency</DialogTitle>
+          <DialogTitle>Добавить новую частоту</DialogTitle>
           <DialogDescription>
-            Create a custom review frequency for your cards.
+            Создать пользовательскую частоту обзора для ваших карточек.
           </DialogDescription>
         </DialogHeader>
         <div class="grid gap-4 py-4">
@@ -326,9 +326,9 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
         </div>
         <DialogFooter>
           <Button variant="outline" @click="isAddModalOpen = false">
-            Cancel
+            Отмена
           </Button>
-          <Button @click="handleAddFrequency">Add</Button>
+          <Button @click="handleAddFrequency">Добавить</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -337,14 +337,11 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
     <Dialog v-model:open="isEditModalOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Frequency</DialogTitle>
-          <DialogDescription>
-            Update the frequency settings.
-          </DialogDescription>
+          <DialogTitle>Изменить</DialogTitle>
         </DialogHeader>
         <div v-if="editingFrequency" class="grid gap-4 py-4">
           <div class="space-y-2">
-            <Label>Frequency</Label>
+            <Label>Частота показа, раз в ...</Label>
             <div class="flex gap-2 items-center">
               <Input
                 id="edit-value"
@@ -370,9 +367,9 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
         </div>
         <DialogFooter>
           <Button variant="outline" @click="isEditModalOpen = false">
-            Cancel
+            Отмена
           </Button>
-          <Button @click="handleSaveFrequency">Save</Button>
+          <Button @click="handleSaveFrequency">Сохранить</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -381,21 +378,17 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
     <AlertDialog v-model:open="isDeleteConfirmOpen">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this frequency?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the
-            frequency.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Удалить эту частоту?</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="isDeleteConfirmOpen = false">
-            Cancel
+            Отмена
           </AlertDialogCancel>
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 text-white"
             @click="confirmDelete"
           >
-            Delete
+            Удалить
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

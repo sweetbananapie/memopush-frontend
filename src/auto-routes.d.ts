@@ -43,7 +43,7 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/decks/'
-      | '/decks/[id]'
+      | '/decks/view'
     >,
     '/decks/': RouteRecordInfo<
       '/decks/',
@@ -52,11 +52,11 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/decks/[id]': RouteRecordInfo<
-      '/decks/[id]',
-      '/decks/:id',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
+    '/decks/view': RouteRecordInfo<
+      '/decks/view',
+      '/decks/view',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/settings': RouteRecordInfo<
@@ -89,7 +89,7 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/decks'
         | '/decks/'
-        | '/decks/[id]'
+        | '/decks/view'
       views:
         | 'default'
     }
@@ -99,9 +99,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/routes/decks/[id].vue': {
+    'src/routes/decks/view.vue': {
       routes:
-        | '/decks/[id]'
+        | '/decks/view'
       views:
         | never
     }

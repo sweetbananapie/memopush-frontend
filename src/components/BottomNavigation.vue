@@ -20,6 +20,20 @@ const goToSettings = () => {
 
 const handleStartSession = async () => {
   try {
+    if (!("Notification" in window)) {
+      console.warn("Notifications are not supported in this browser.");
+      return;
+    }
+
+    if (Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+
+    if (Notification.permission !== "granted") {
+      console.warn("Notifications permission not granted.");
+      return;
+    }
+
     const sw = await navigator.serviceWorker.ready;
     await sw.active?.postMessage("message");
   } catch (error) {

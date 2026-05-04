@@ -136,7 +136,7 @@ const { openCreateModal, handleCreate, handleCreateCancel } = useCreateDeck();
 const { openUpdateModal, handleUpdate, handleUpdateCancel } = useUpdateDeck();
 
 const handleOpenDeck = (id: string) => {
-  router.push({ name: `/decks/[id]`, params: { id } });
+  router.push({ path: "/decks/view", query: { id } });
 };
 
 const handleToggleActive = async (id: string) => {
@@ -174,7 +174,7 @@ const confirmDelete = async () => {
       <div class="flex justify-between items-center py-4">
         <h1 class="text-3xl font-bold tracking-tight">Колоды</h1>
         <div class="space-x-4">
-          <Button @click="openCreateModal">Create Deck</Button>
+          <Button @click="openCreateModal">Создать колоду</Button>
         </div>
       </div>
     </div>
@@ -187,7 +187,6 @@ const confirmDelete = async () => {
     <!-- Empty State -->
     <div v-else-if="decks.length === 0" class="text-center py-12">
       <p class="text-gray-600 mb-4">Нет колод. Создайте одну, чтобы начать!</p>
-      <Button @click="openCreateModal">Создать колоду</Button>
     </div>
 
     <!-- Grid Layout -->
@@ -219,22 +218,22 @@ const confirmDelete = async () => {
         </DialogHeader>
         <div class="grid gap-4 py-4">
           <div class="space-y-2">
-            <Label for="create-name">Deck Name</Label>
+            <Label for="create-name">Название колоды</Label>
             <Input
               id="create-name"
               v-model="createForm.name"
-              placeholder="e.g., English Vocabulary"
+              placeholder="Казахские слова"
               @keyup.enter="handleCreate"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" @click="handleCreateCancel">Cancel</Button>
+          <Button variant="outline" @click="handleCreateCancel">Отмена</Button>
           <Button
             @click="handleCreate"
             :disabled="isCreating || !createForm.name.trim()"
           >
-            {{ isCreating ? "Creating..." : "Create" }}
+            {{ isCreating ? "Создание..." : "Создать" }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -244,12 +243,12 @@ const confirmDelete = async () => {
     <Dialog v-model:open="isUpdateModalOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Deck</DialogTitle>
-          <DialogDescription>Update your deck name.</DialogDescription>
+          <DialogTitle>Изменить колоду</DialogTitle>
+          <DialogDescription>Обновить название колоды.</DialogDescription>
         </DialogHeader>
         <div v-if="updateForm" class="grid gap-4 py-4">
           <div class="space-y-2">
-            <Label for="update-name">Deck Name</Label>
+            <Label for="update-name">Название колоды</Label>
             <Input
               id="update-name"
               v-model="updateForm.name"
@@ -258,7 +257,7 @@ const confirmDelete = async () => {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" @click="handleUpdateCancel">Cancel</Button>
+          <Button variant="outline" @click="handleUpdateCancel">Отмена</Button>
           <Button
             @click="handleUpdate"
             :disabled="isUpdating || !updateForm?.name.trim()"
@@ -273,21 +272,21 @@ const confirmDelete = async () => {
     <AlertDialog v-model:open="isDeleteConfirmOpen">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete deck?</AlertDialogTitle>
+          <AlertDialogTitle>Удалить колоду?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your deck
-            and all its cards.
+            Это действие необратимо. Оно навсегда удалит вашу колоду и все её
+            карты.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="isDeleteConfirmOpen = false">
-            Cancel
+            Отменить
           </AlertDialogCancel>
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 text-white"
             @click="confirmDelete"
           >
-            Delete
+            Удалить
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

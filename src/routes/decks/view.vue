@@ -37,7 +37,7 @@ import cardFrequencyService from "@/services/cardFrequencyService";
 const route = useRoute();
 const router = useRouter();
 
-const deckId = computed(() => (route.params as any).id as string);
+const deckId = computed(() => (route.query as any).id as string);
 
 // Deck State
 const deckName = ref("");
@@ -157,7 +157,7 @@ const handleSaveFullEdit = async () => {
     await deckService.updateCard(
       deckId.value,
       fullEditCardId.value,
-      updatedCard
+      updatedCard,
     );
     cards.value[index] = updatedCard;
     isFullEditModalOpen.value = false;
@@ -313,7 +313,7 @@ const parseImportedCards = (text: string): Card[] => {
         side2Word: s2.word,
         side2Example: s2.example,
         timeoutUntil: calculateTimeoutUntil(
-          cardFrequencyService.getFallbackFrequencyId()
+          cardFrequencyService.getFallbackFrequencyId(),
         ),
         active: true,
         frequency: cardFrequencyService.getFallbackFrequencyId(),
@@ -452,9 +452,9 @@ const loadCards = async () => {
         </h1>
         <div class="flex space-x-2">
           <Button variant="outline" @click="isImportModalOpen = true"
-            >Import Cards</Button
+            >Добавить много</Button
           >
-          <Button @click="handleOpenAddModal">Add Card</Button>
+          <Button @click="handleOpenAddModal">Добавить карточку</Button>
         </div>
       </div>
     </div>
@@ -466,8 +466,9 @@ const loadCards = async () => {
 
     <!-- Empty State -->
     <div v-else-if="cards.length === 0" class="text-center py-12">
-      <p class="text-gray-600 mb-4">No cards yet. Add one to get started!</p>
-      <Button @click="handleOpenAddModal">Add Your First Card</Button>
+      <p class="text-gray-600 mb-4">
+        Нет карточек. Добавьте первую карточку, чтобы начать!
+      </p>
     </div>
 
     <!-- Cards Table -->
@@ -475,11 +476,11 @@ const loadCards = async () => {
       <Table class="max-w-full">
         <TableHeader class="bg-gray-50/50">
           <TableRow>
-            <TableHead class="w-[34%] sm:w-[30%]">Side 1</TableHead>
+            <TableHead class="w-[34%] sm:w-[30%]">Сторона 1</TableHead>
             <TableHead class="w-[32px] text-center"></TableHead>
-            <TableHead class="w-[34%] sm:w-[30%]">Side 2</TableHead>
-            <TableHead class="w-[88px] sm:w-[120px]">Frequency</TableHead>
-            <TableHead class="w-[92px] text-right">Actions</TableHead>
+            <TableHead class="w-[34%] sm:w-[30%]">Сторона 2</TableHead>
+            <TableHead class="w-[88px] sm:w-[120px]">Частота показа</TableHead>
+            <TableHead class="w-[92px] text-right">Действия</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -501,12 +502,13 @@ const loadCards = async () => {
     <Dialog v-model:open="isImportModalOpen">
       <DialogContent class="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Import Cards</DialogTitle>
+          <DialogTitle>Множественное добавление карточек</DialogTitle>
           <DialogDescription>
-            Paste your cards here. Format:
-            <code>Word 1 (Example 1) - Word 2 (Example 2)</code>. <br />Examples
-            are optional. Each card on a new line. Multiline examples within
-            parentheses are supported.
+            Вставьте ваши карточки сюда. Формат:
+
+            <code>Word 1 (Пример 1) - Word 2 (Пример 2)</code>. <br />Примеры
+            необязательны. Каждая карточка на новой строке. Многострочные
+            примеры внутри скобок поддерживаются.
           </DialogDescription>
         </DialogHeader>
 
@@ -520,9 +522,9 @@ const loadCards = async () => {
 
         <DialogFooter>
           <Button variant="outline" @click="isImportModalOpen = false"
-            >Cancel</Button
+            >Отмена</Button
           >
-          <Button @click="handleImport">Import</Button>
+          <Button @click="handleImport">Добавить</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -531,18 +533,18 @@ const loadCards = async () => {
     <Dialog v-model:open="isAddModalOpen">
       <DialogContent class="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Card</DialogTitle>
+          <DialogTitle>Добавить новую карту</DialogTitle>
           <DialogDescription>
-            Update the card details below. Click save when you're done.
+            Добавьте данные карты ниже. После завершения нажмите «Сохранить».
           </DialogDescription>
         </DialogHeader>
 
         <div class="grid grid-cols-2 gap-6 py-4">
           <!-- Side 1 Form -->
           <div class="space-y-4">
-            <h4 class="font-medium border-b pb-2">Side 1</h4>
+            <h4 class="font-medium border-b pb-2">Сторона 1</h4>
             <div class="space-y-2">
-              <Label for="side1Word">Word / Term *</Label>
+              <Label for="side1Word">Слово / Фраза *</Label>
               <Input
                 id="side1Word"
                 v-model="newCardForm.side1Word"
@@ -554,7 +556,7 @@ const loadCards = async () => {
               />
             </div>
             <div class="space-y-2">
-              <Label for="side1Example">Usage Example</Label>
+              <Label for="side1Example">Пример использования</Label>
               <textarea
                 id="side1Example"
                 v-model="newCardForm.side1Example"
@@ -565,9 +567,9 @@ const loadCards = async () => {
 
           <!-- Side 2 Form -->
           <div class="space-y-4">
-            <h4 class="font-medium border-b pb-2">Side 2</h4>
+            <h4 class="font-medium border-b pb-2">Сторона 2</h4>
             <div class="space-y-2">
-              <Label for="side2Word">Word / Term *</Label>
+              <Label for="side2Word">Слово / Фраза *</Label>
               <Input
                 id="side2Word"
                 v-model="newCardForm.side2Word"
@@ -579,7 +581,7 @@ const loadCards = async () => {
               />
             </div>
             <div class="space-y-2">
-              <Label for="side2Example">Usage Example</Label>
+              <Label for="side2Example">Пример использования</Label>
               <textarea
                 id="side2Example"
                 v-model="newCardForm.side2Example"
@@ -590,7 +592,7 @@ const loadCards = async () => {
 
           <!-- Frequency Selection -->
           <div class="col-span-2 space-y-2">
-            <Label for="frequency">Review Frequency</Label>
+            <Label for="frequency">Частота показа раз в ...</Label>
             <select
               id="frequency"
               v-model="newCardForm.frequency"
@@ -609,9 +611,9 @@ const loadCards = async () => {
 
         <DialogFooter>
           <Button variant="outline" @click="isAddModalOpen = false"
-            >Cancel</Button
+            >Отмена</Button
           >
-          <Button type="submit" @click="handleAddCard">Add Card</Button>
+          <Button type="submit" @click="handleAddCard">Добавить</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -620,17 +622,14 @@ const loadCards = async () => {
     <Dialog v-model:open="isFullEditModalOpen">
       <DialogContent class="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Full Card Edit</DialogTitle>
-          <DialogDescription>
-            Edit all fields for this card and save changes.
-          </DialogDescription>
+          <DialogTitle>Изменить карточку</DialogTitle>
         </DialogHeader>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 py-4">
           <div class="space-y-4">
-            <h4 class="font-medium border-b pb-2">Side 1</h4>
+            <h4 class="font-medium border-b pb-2">Сторона 1</h4>
             <div class="space-y-2">
-              <Label for="fullEditSide1Word">Word / Term *</Label>
+              <Label for="fullEditSide1Word">Слово / Фраза *</Label>
               <Input
                 id="fullEditSide1Word"
                 ref="fullEditSide1WordRef"
@@ -643,7 +642,7 @@ const loadCards = async () => {
               />
             </div>
             <div class="space-y-2">
-              <Label for="fullEditSide1Example">Usage Example</Label>
+              <Label for="fullEditSide1Example">Пример использования</Label>
               <textarea
                 id="fullEditSide1Example"
                 ref="fullEditSide1ExampleRef"
@@ -654,9 +653,9 @@ const loadCards = async () => {
           </div>
 
           <div class="space-y-4">
-            <h4 class="font-medium border-b pb-2">Side 2</h4>
+            <h4 class="font-medium border-b pb-2">Сторона 2</h4>
             <div class="space-y-2">
-              <Label for="fullEditSide2Word">Word / Term *</Label>
+              <Label for="fullEditSide2Word">Слово / Фраза *</Label>
               <Input
                 id="fullEditSide2Word"
                 ref="fullEditSide2WordRef"
@@ -669,7 +668,7 @@ const loadCards = async () => {
               />
             </div>
             <div class="space-y-2">
-              <Label for="fullEditSide2Example">Usage Example</Label>
+              <Label for="fullEditSide2Example">Пример использования</Label>
               <textarea
                 id="fullEditSide2Example"
                 ref="fullEditSide2ExampleRef"
@@ -681,7 +680,7 @@ const loadCards = async () => {
 
           <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-2">
-              <Label for="fullEditFrequency">Review Frequency</Label>
+              <Label for="fullEditFrequency">Частота показа раз в ...</Label>
               <select
                 id="fullEditFrequency"
                 ref="fullEditFrequencyRef"
@@ -709,15 +708,15 @@ const loadCards = async () => {
               />
             </div>
             <div class="space-y-2">
-              <Label for="fullEditActive">Card status</Label>
+              <Label for="fullEditActive">Видимость</Label>
               <select
                 id="fullEditActive"
                 ref="fullEditActiveRef"
                 v-model="fullEditForm.active"
                 class="w-full px-3 py-2 border border-input rounded-md shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option :value="true">Active</option>
-                <option :value="false">Inactive</option>
+                <option :value="true">Видимая</option>
+                <option :value="false">Скрытая</option>
               </select>
             </div>
           </div>
@@ -725,9 +724,9 @@ const loadCards = async () => {
 
         <DialogFooter>
           <Button variant="outline" @click="isFullEditModalOpen = false">
-            Cancel
+            Отмена
           </Button>
-          <Button @click="handleSaveFullEdit">Save Changes</Button>
+          <Button @click="handleSaveFullEdit">Сохранить изменения</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
