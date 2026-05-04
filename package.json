@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit -b && vite build",
+    "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "prebuild": "npm run check-unsafe-routes",
