@@ -7,6 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import VueRouter from "vue-router/vite";
 
 export default defineConfig({
+  base: "/memopush-frontend/",
   plugins: [
     VueRouter({
       routesFolder: "src/routes",
