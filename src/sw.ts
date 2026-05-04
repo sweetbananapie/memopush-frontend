@@ -20,7 +20,7 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(deckService.handleClick(self, event));
 });
 self.addEventListener("push", (event) => {
-  event.waitUntil(deckService.start(self, event));
+  event.waitUntil(deckService.start(self));
 });
 self.addEventListener("message", async (event) => {
   event.waitUntil(deckService.start(self));
