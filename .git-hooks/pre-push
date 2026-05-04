@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+echo "🔍 Проверка билда..." >&2
+
+# Захватываем весь вывод
+output=$(npm run build 2>&1)
+code=$?
+
+# Выводим его
+echo "$output" >&2
+
+if [ $code -ne 0 ]; then
+    echo "" >&2
+    echo "❌ БИЛД УПАЛ (exit code $code) — пуш отменён" >&2
+    echo "💡 Запусти: npm run build" >&2
+    exit 1
+fi
+
+echo "✅ Билд успешный" >&2

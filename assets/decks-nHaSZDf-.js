@@ -1,0 +1,1 @@
+import{A as e,P as t,m as n}from"./vue.runtime.esm-bundler-CpmkGw_3.js";var r=(e,t)=>{let n=e.__vccOpts||e;for(let[e,r]of t)n[e]=r;return n},i={};function a(r,i){let a=t(`RouterView`);return e(),n(a)}var o=r(i,[[`render`,a]]);export{o as default};

@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "YoavBls.pretty-ts-errors",
+    "quicktype.quicktype",
+    "eamodio.gitlens",
+    "lokalise.i18n-ally",
+    "jannisx11.batch-rename-extension",
+    "dbaeumer.vscode-eslint",
+    "blackgirlbytes.deploy-to-github-pages",
+    "EditorConfig.EditorConfig"
+  ]
+}

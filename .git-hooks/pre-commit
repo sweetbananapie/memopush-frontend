@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+
+# Получаем список изменённых файлов, готовых к коммиту
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|vue)$')
+
+# Проверяем, есть ли файлы для анализа
+if [ -z "$FILES" ]; then
+    echo "Нет изменённых файлов с расширениями .ts, .tsx или .vue для проверки."
+    exit 0
+fi
+# Проверяем каждый файл на наличие комментария
+for FILE in $FILES; do
+    if grep -q "do not commit" "$FILE"; then
+        echo "Найден 'do not commit' в файле $FILE"
+        echo "Пожалуйста, удалите этот комментарий перед коммитом."
+        exit 1
+    fi
+done
+# Проверяем каждый файл на наличие комментария
+for FILE in $FILES; do
+    if grep -q "<<<<<<<" "$FILE"; then
+        echo "Найден незавершенный конфликт в файле $FILE"
+        echo "Пожалуйста, удалите '<<<<<<<<' перед коммитом."
+        exit 1
+    fi
+done
