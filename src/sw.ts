@@ -23,5 +23,5 @@ self.addEventListener("push", (event) => {
   event.waitUntil(deckService.start(self, event));
 });
 self.addEventListener("message", async (event) => {
-  event.waitUntil(deckService.start(self, event));
+  event.waitUntil(deckService.start(self));
 });
