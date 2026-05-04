@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import HelloWorld from "./components/HelloWorld.vue";
+import BottomNavigation from "@/components/BottomNavigation.vue";
 </script>
 
 <template>
-  <RouterView></RouterView>
+  <RouterView />
+  <BottomNavigation />
 </template>

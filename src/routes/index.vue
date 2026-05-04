@@ -5,7 +5,7 @@ import { onMounted } from "vue";
 const router = useRouter();
 
 onMounted(() => {
-  router.push("/decks");
+  router.push({ name: "/decks" });
 });
 </script>
 

@@ -9,6 +9,7 @@
     "lokalise.i18n-ally",
     "jannisx11.batch-rename-extension",
     "dbaeumer.vscode-eslint",
+    "blackgirlbytes.deploy-to-github-pages",
     "EditorConfig.EditorConfig"
   ]
 }

@@ -37,7 +37,7 @@ import cardFrequencyService from "@/services/cardFrequencyService";
 const route = useRoute();
 const router = useRouter();
 
-const deckId = computed(() => route.params.id as string);
+const deckId = computed(() => (route.params as any).id as string);
 
 // Deck State
 const deckName = ref("");
@@ -112,10 +112,9 @@ const handleOpenFullEdit = async (id: string, field?: string) => {
     side2Word: card.side2Word || "",
     side2Example: card.side2Example || "",
     timeoutUntil: card.timeoutUntil || Date.now(),
-    frequency:
-      cardFrequencyService.resolveFrequency(card.frequency)
-        ? card.frequency
-        : cardFrequencyService.getFallbackFrequencyId(),
+    frequency: cardFrequencyService.resolveFrequency(card.frequency)
+      ? card.frequency
+      : cardFrequencyService.getFallbackFrequencyId(),
     active: card.active,
   };
   fullEditErrors.value = { side1Word: false, side2Word: false };
@@ -155,7 +154,11 @@ const handleSaveFullEdit = async () => {
   };
 
   try {
-    await deckService.updateCard(deckId.value, fullEditCardId.value, updatedCard);
+    await deckService.updateCard(
+      deckId.value,
+      fullEditCardId.value,
+      updatedCard
+    );
     cards.value[index] = updatedCard;
     isFullEditModalOpen.value = false;
     fullEditCardId.value = null;
@@ -234,7 +237,7 @@ const confirmDelete = async () => {
 };
 
 const goBack = () => {
-  router.push("/decks");
+  router.back();
 };
 
 // Import Modal State
@@ -310,7 +313,7 @@ const parseImportedCards = (text: string): Card[] => {
         side2Word: s2.word,
         side2Example: s2.example,
         timeoutUntil: calculateTimeoutUntil(
-          cardFrequencyService.getFallbackFrequencyId(),
+          cardFrequencyService.getFallbackFrequencyId()
         ),
         active: true,
         frequency: cardFrequencyService.getFallbackFrequencyId(),
@@ -412,11 +415,11 @@ const loadDeck = async () => {
       deckName.value = deck.name;
       cards.value = deck.cards;
     } else {
-      router.push("/decks");
+      router.push({ name: "/decks" });
     }
   } catch (error) {
     console.error("Failed to load deck:", error);
-    router.push("/decks");
+    router.push({ name: "/decks" });
   } finally {
     loading.value = false;
   }
@@ -435,18 +438,24 @@ const loadCards = async () => {
 </script>
 
 <template>
-  <div class="container mx-auto py-8 px-4 max-w-7xl">
+  <div class="container mx-auto px-4 max-w-7xl pb-24">
     <!-- Header -->
-    <div class="flex items-center space-x-4 mb-8">
-      <Button variant="ghost" size="icon" @click="goBack">
-        <ChevronLeft class="w-6 h-6" />
-      </Button>
-      <h1 class="text-xl font-medium tracking-tight flex-1">{{ deckName }}</h1>
-      <div class="flex space-x-2">
-        <Button variant="outline" @click="isImportModalOpen = true"
-          >Import Cards</Button
-        >
-        <Button @click="handleOpenAddModal">Add Card</Button>
+    <div
+      class="sticky top-0 z-20 -mx-4 px-4 mb-6 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80"
+    >
+      <div class="flex items-center space-x-4 py-4">
+        <Button variant="ghost" size="icon" @click="goBack">
+          <ChevronLeft class="w-6 h-6" />
+        </Button>
+        <h1 class="text-xl font-medium tracking-tight flex-1">
+          {{ deckName }}
+        </h1>
+        <div class="flex space-x-2">
+          <Button variant="outline" @click="isImportModalOpen = true"
+            >Import Cards</Button
+          >
+          <Button @click="handleOpenAddModal">Add Card</Button>
+        </div>
       </div>
     </div>
 

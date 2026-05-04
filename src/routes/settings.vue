@@ -64,10 +64,10 @@ const moveFrequency = (draggedId: string, targetId: string) => {
   if (draggedId === targetId) return;
 
   const draggedIndex = frequencies.value.findIndex(
-    (freq) => getFrequencyId(freq) === draggedId,
+    (freq) => getFrequencyId(freq) === draggedId
   );
   const targetIndex = frequencies.value.findIndex(
-    (freq) => getFrequencyId(freq) === targetId,
+    (freq) => getFrequencyId(freq) === targetId
   );
 
   if (draggedIndex === -1 || targetIndex === -1) return;
@@ -77,7 +77,9 @@ const moveFrequency = (draggedId: string, targetId: string) => {
   updated.splice(targetIndex, 0, moved);
   frequencies.value = updated;
 
-  cardFrequencyService.reorderFrequencies(updated.map((freq) => getFrequencyId(freq)));
+  cardFrequencyService.reorderFrequencies(
+    updated.map((freq) => getFrequencyId(freq))
+  );
 };
 
 const handleDragStart = (frequency: Frequency) => {
@@ -90,16 +92,18 @@ const handleDrop = (targetFrequency: Frequency) => {
   draggedFrequencyId.value = null;
 };
 
-const moveFrequencyByStep = (frequency: Frequency, direction: "up" | "down") => {
+const moveFrequencyByStep = (
+  frequency: Frequency,
+  direction: "up" | "down"
+) => {
   const currentId = getFrequencyId(frequency);
   const currentIndex = frequencies.value.findIndex(
-    (item) => getFrequencyId(item) === currentId,
+    (item) => getFrequencyId(item) === currentId
   );
 
   if (currentIndex === -1) return;
 
-  const targetIndex =
-    direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
   if (targetIndex < 0 || targetIndex >= frequencies.value.length) return;
 
@@ -110,7 +114,7 @@ const handleAddFrequency = () => {
   addError.value = "";
   const result = cardFrequencyService.addFrequency(
     newFrequency.value.value,
-    newFrequency.value.unit,
+    newFrequency.value.unit
   );
 
   if (!result.ok) {
@@ -137,7 +141,7 @@ const handleSaveFrequency = () => {
   const result = cardFrequencyService.updateFrequency(
     editingOriginalId.value,
     editingFrequency.value.value,
-    editingFrequency.value.unit,
+    editingFrequency.value.unit
   );
 
   if (!result.ok) {
@@ -174,7 +178,7 @@ const handleResetDefaults = () => {
 };
 
 const goBack = () => {
-  router.push("/decks");
+  router.back();
 };
 
 const getUnitLabel = (unit: FrequencyUnit): string => {
@@ -191,13 +195,17 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
 </script>
 
 <template>
-  <div class="container mx-auto py-8 px-4 max-w-4xl">
+  <div class="container mx-auto px-4 max-w-4xl pb-24">
     <!-- Header -->
-    <div class="flex items-center space-x-4 mb-8">
-      <Button variant="ghost" size="icon" @click="goBack">
-        <ChevronLeft class="w-6 h-6" />
-      </Button>
-      <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
+    <div
+      class="sticky top-0 z-20 -mx-4 px-4 mb-6 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80"
+    >
+      <div class="flex items-center space-x-4 py-4">
+        <Button variant="ghost" size="icon" @click="goBack">
+          <ChevronLeft class="w-6 h-6" />
+        </Button>
+        <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
+      </div>
     </div>
 
     <!-- Frequencies Section -->
@@ -224,7 +232,9 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
           class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
         >
           <div class="flex items-center gap-3">
-            <GripVertical class="hidden md:block w-4 h-4 text-gray-400 cursor-grab" />
+            <GripVertical
+              class="hidden md:block w-4 h-4 text-gray-400 cursor-grab"
+            />
             <div>
               <p class="font-medium">{{ getFrequencyLabel(freq) }}</p>
               <p class="text-sm text-gray-600">
@@ -238,7 +248,10 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
                 variant="outline"
                 size="icon"
                 class="h-8 w-8"
-                :disabled="frequencies[0] && getFrequencyId(freq) === getFrequencyId(frequencies[0])"
+                :disabled="
+                  frequencies[0] &&
+                  getFrequencyId(freq) === getFrequencyId(frequencies[0])
+                "
                 @click="moveFrequencyByStep(freq, 'up')"
               >
                 <ArrowUp class="w-4 h-4" />
@@ -299,7 +312,11 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
                 v-model="newFrequency.unit"
                 class="w-full px-3 py-2 border border-input rounded-md shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option v-for="unit in FREQUENCY_UNITS" :key="unit" :value="unit">
+                <option
+                  v-for="unit in FREQUENCY_UNITS"
+                  :key="unit"
+                  :value="unit"
+                >
                   {{ getUnitLabel(unit) }}
                 </option>
               </select>
@@ -339,7 +356,11 @@ const getUnitLabel = (unit: FrequencyUnit): string => {
                 v-model="editingFrequency.unit"
                 class="w-full px-3 py-2 border border-input rounded-md shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option v-for="unit in FREQUENCY_UNITS" :key="unit" :value="unit">
+                <option
+                  v-for="unit in FREQUENCY_UNITS"
+                  :key="unit"
+                  :value="unit"
+                >
                   {{ getUnitLabel(unit) }}
                 </option>
               </select>

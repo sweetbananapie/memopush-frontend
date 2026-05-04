@@ -136,7 +136,7 @@ const { openCreateModal, handleCreate, handleCreateCancel } = useCreateDeck();
 const { openUpdateModal, handleUpdate, handleUpdateCancel } = useUpdateDeck();
 
 const handleOpenDeck = (id: string) => {
-  router.push(`/decks/${id}`);
+  router.push({ name: `/decks/[id]`, params: { id } });
 };
 
 const handleToggleActive = async (id: string) => {
@@ -164,43 +164,30 @@ const confirmDelete = async () => {
   isDeleteConfirmOpen.value = false;
   deckToDelete.value = null;
 };
-
-const handleStart = async () => {
-  try {
-    const sw = await navigator.serviceWorker.ready;
-    await sw.active?.postMessage("message");
-  } catch (error) {
-    console.error("Failed to start session:", error);
-  }
-};
-
-const goToSettings = () => {
-  router.push("/settings");
-};
 </script>
 
 <template>
-  <div class="container mx-auto py-8 px-4 max-w-5xl">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold tracking-tight">My Decks</h1>
-      <div class="space-x-4">
-        <Button variant="secondary" @click="goToSettings">Settings</Button>
-        <Button variant="secondary" @click="handleStart()"
-          >Start Session</Button
-        >
-        <Button @click="openCreateModal">Create Deck</Button>
+  <div class="container mx-auto px-4 max-w-5xl pb-24">
+    <div
+      class="sticky top-0 z-20 -mx-4 px-4 mb-6 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80"
+    >
+      <div class="flex justify-between items-center py-4">
+        <h1 class="text-3xl font-bold tracking-tight">Колоды</h1>
+        <div class="space-x-4">
+          <Button @click="openCreateModal">Create Deck</Button>
+        </div>
       </div>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-8">
-      <p>Loading decks...</p>
+      <p>Загрузка колод...</p>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="decks.length === 0" class="text-center py-12">
-      <p class="text-gray-600 mb-4">No decks yet. Create one to get started!</p>
-      <Button @click="openCreateModal">Create Your First Deck</Button>
+      <p class="text-gray-600 mb-4">Нет колод. Создайте одну, чтобы начать!</p>
+      <Button @click="openCreateModal">Создать колоду</Button>
     </div>
 
     <!-- Grid Layout -->
@@ -225,9 +212,9 @@ const goToSettings = () => {
     <Dialog v-model:open="isCreateModalOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Deck</DialogTitle>
+          <DialogTitle>Создать новую колоду</DialogTitle>
           <DialogDescription>
-            Give your deck a name to get started learning.
+            Назовите колоду, чтобы начать обучение.
           </DialogDescription>
         </DialogHeader>
         <div class="grid gap-4 py-4">
