@@ -2,26 +2,20 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ['main']
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [ "main" ]
   workflow_dispatch:
 
-# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
 concurrency:
-  group: 'pages'
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
     environment:
       name: github-pages
@@ -30,22 +24,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      # 1. Устанавливаем pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # или 9 / latest / auto (если указан в package.json)
+
+      # 2. Setup Node + кэширование под pnpm
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "pnpm" # ← главное изменение
+
+      # 3. Установка зависимостей
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile # рекомендуется в CI
+
+      # 4. Сборка
       - name: Build
-        run: npm run build
+        run: pnpm run build
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          # Upload dist folder
-          path: './dist'
+          path: "./dist"
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
