@@ -1,1 +1,0 @@
-import{A as e,D as t,P as n,m as r,y as i}from"./vue.runtime.esm-bundler-CpmkGw_3.js";import{l as a}from"./index-RrvorKko.js";var o=i({__name:`index`,setup(i){let o=a();return t(()=>{o.push({name:`/decks`})}),(t,i)=>{let a=n(`RouterView`);return e(),r(a)}}});export{o as default};
