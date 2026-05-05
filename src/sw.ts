@@ -5,8 +5,8 @@ declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: any;
 };
 
-// cleanupOutdatedCaches();
-// precacheAndRoute(self.__WB_MANIFEST);
+cleanupOutdatedCaches();
+precacheAndRoute(self.__WB_MANIFEST);
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {

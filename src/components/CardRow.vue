@@ -73,7 +73,7 @@ const resetTimeout = () => {
     <!-- Side 1 -->
     <TableCell
       :class="[!card.active ? 'opacity-50 grayscale-20' : '']"
-      class="max-w-0"
+      class="max-w-[35vw]"
     >
       <div>
         <div
@@ -94,25 +94,10 @@ const resetTimeout = () => {
       </div>
     </TableCell>
 
-    <!-- Reverse Action -->
-    <TableCell
-      :class="[!card.active ? 'opacity-50 grayscale-20' : '']"
-      class="text-center align-top pt-4"
-    >
-      <Button
-        variant="ghost"
-        @click="emit('reverse', card.id)"
-        class="text-gray-400 hover:text-blue-500 rounded-full p-0! -mx-4"
-        title="Reverse Sides"
-      >
-        <ArrowLeftRight class="w-4 h-4" />
-      </Button>
-    </TableCell>
-
     <!-- Side 2 -->
     <TableCell
       :class="[!card.active ? 'opacity-50 grayscale-20' : '']"
-      class="max-w-0"
+      class="max-w-[35vw]"
     >
       <div>
         <div
@@ -134,7 +119,7 @@ const resetTimeout = () => {
     </TableCell>
 
     <!-- Frequency Column -->
-    <TableCell class="text-sm align-top pt-4 w-[88px] sm:w-[120px] max-w-0">
+    <TableCell class="text-sm align-top pt-4">
       <div ref="frequencyPopoverRef" class="relative">
         <div
           :class="[!card.active ? 'opacity-50 grayscale-20' : '']"
@@ -163,7 +148,7 @@ const resetTimeout = () => {
           </div>
         </div>
         <div
-          class="mt-2 text-xs flex items-center"
+          class="mt-2 text-xs flex items-center relative"
           :class="[!card.active ? 'opacity-50 grayscale-20' : '']"
         >
           <Button
@@ -176,11 +161,12 @@ const resetTimeout = () => {
             <RotateCcw class="w-3 h-3" />
           </Button>
           <span
-            :class="
+            :class="[
+              'absolute left-6 top-0 w-0 overflow-visible',
               card.timeoutUntil > Date.now()
                 ? 'text-gray-400'
-                : 'text-gray-600 font-medium'
-            "
+                : 'text-gray-600 font-medium',
+            ]"
           >
             {{ formatDate(card.timeoutUntil) }}
           </span>
@@ -189,7 +175,7 @@ const resetTimeout = () => {
     </TableCell>
 
     <!-- Actions -->
-    <TableCell class="text-right align-top pt-3 w-[92px]">
+    <TableCell class="text-right align-top pt-3">
       <div class="flex items-center justify-end space-x-1">
         <Button
           variant="ghost"

@@ -291,13 +291,21 @@ class DeckService {
       // @ts-ignore
       actions: [
         {
-          action: "more",
-          title: "Показывать чаще",
+          action: "next",
+          title: "Дальше",
         },
         {
-          action: "less",
-          title: "Показывать реже",
+          action: "settings",
+          title: "Настройки",
         },
+        // {
+        //   action: "more",
+        //   title: "Показывать чаще",
+        // },
+        // {
+        //   action: "less",
+        //   title: "Показывать реже",
+        // },
       ],
     });
   }
@@ -319,13 +327,21 @@ class DeckService {
       // @ts-ignore
       actions: [
         {
-          action: "more",
-          title: "Показывать чаще",
+          action: "next",
+          title: "Дальше",
         },
         {
-          action: "less",
-          title: "Показывать реже",
+          action: "settings",
+          title: "Настройки",
         },
+        // {
+        //   action: "more",
+        //   title: "Показывать чаще",
+        // },
+        // {
+        //   action: "less",
+        //   title: "Показывать реже",
+        // },
       ],
     });
   }
@@ -351,19 +367,19 @@ class DeckService {
     if (data?.type === "question") {
       await this.showCardAnswer(sw, data.card);
     } else if (data?.type === "answer") {
-      if (data.deckId && action === "more") {
-        // Increase frequency (show more often)
-        data.card.frequency = this.increaseFrequency(data.card.frequency);
-        data.card.timeoutUntil = this.calculateTimeoutUntil(
-          data.card.frequency,
-        );
-      } else if (data.deckId && action === "less") {
-        // Decrease frequency (show less often)
-        data.card.frequency = this.decreaseFrequency(data.card.frequency);
-        data.card.timeoutUntil = this.calculateTimeoutUntil(
-          data.card.frequency,
-        );
-      }
+      // if (data.deckId && action === "more") {
+      //   // Increase frequency (show more often)
+      //   data.card.frequency = this.increaseFrequency(data.card.frequency);
+      //   data.card.timeoutUntil = this.calculateTimeoutUntil(
+      //     data.card.frequency,
+      //   );
+      // } else if (data.deckId && action === "less") {
+      //   // Decrease frequency (show less often)
+      //   data.card.frequency = this.decreaseFrequency(data.card.frequency);
+      //   data.card.timeoutUntil = this.calculateTimeoutUntil(
+      //     data.card.frequency,
+      //   );
+      // }
 
       if (data.deckId) {
         await this.updateCard(data.deckId, data.card.id, data.card);

@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ChevronLeft } from "lucide-vue-next";
+import {
+  ChevronLeft,
+  MoreVertical,
+  Plus,
+  FilePlus,
+  RotateCcw,
+} from "lucide-vue-next";
+import { onClickOutside } from "@vueuse/core";
 import {
   Dialog,
   DialogContent,
@@ -312,9 +319,7 @@ const parseImportedCards = (text: string): Card[] => {
         side1Example: s1.example,
         side2Word: s2.word,
         side2Example: s2.example,
-        timeoutUntil: calculateTimeoutUntil(
-          cardFrequencyService.getFallbackFrequencyId(),
-        ),
+        timeoutUntil: Date.now(),
         active: true,
         frequency: cardFrequencyService.getFallbackFrequencyId(),
       });
@@ -359,6 +364,27 @@ const newCardForm = ref({
 });
 const newCardErrors = ref({ side1Word: false, side2Word: false });
 
+const isActionsMenuOpen = ref(false);
+const actionsMenuRef = ref<HTMLElement | null>(null);
+
+onClickOutside(actionsMenuRef, () => {
+  isActionsMenuOpen.value = false;
+});
+
+const toggleActionsMenu = () => {
+  isActionsMenuOpen.value = !isActionsMenuOpen.value;
+};
+
+const handleOpenAddCardFromMenu = () => {
+  handleOpenAddModal();
+  isActionsMenuOpen.value = false;
+};
+
+const handleOpenImportFromMenu = () => {
+  isImportModalOpen.value = true;
+  isActionsMenuOpen.value = false;
+};
+
 const handleOpenAddModal = () => {
   newCardForm.value = {
     side1Word: "",
@@ -391,7 +417,7 @@ const handleAddCard = async () => {
         side1Example: newCardForm.value.side1Example,
         side2Word: newCardForm.value.side2Word,
         side2Example: newCardForm.value.side2Example,
-        timeoutUntil: calculateTimeoutUntil(newCardForm.value.frequency),
+        timeoutUntil: Date.now(),
         active: true,
         frequency: newCardForm.value.frequency,
       });
@@ -435,6 +461,24 @@ const loadCards = async () => {
     console.error("Failed to load cards:", error);
   }
 };
+
+const isResetAllConfirmOpen = ref(false);
+
+const handleResetAllTimeouts = async () => {
+  try {
+    for (const card of cards.value) {
+      await deckService.updateCard(deckId.value, card.id, {
+        ...card,
+        timeoutUntil: Date.now(),
+      });
+      card.timeoutUntil = Date.now();
+    }
+  } catch (error) {
+    console.error("Failed to reset all timeouts:", error);
+  } finally {
+    isResetAllConfirmOpen.value = false;
+  }
+};
 </script>
 
 <template>
@@ -450,11 +494,34 @@ const loadCards = async () => {
         <h1 class="text-xl font-medium tracking-tight flex-1">
           {{ deckName }}
         </h1>
-        <div class="flex space-x-2">
-          <Button variant="outline" @click="isImportModalOpen = true"
-            >Добавить много</Button
+        <div class="relative" ref="actionsMenuRef">
+          <Button
+            variant="ghost"
+            size="icon"
+            @click="toggleActionsMenu"
+            aria-label="Deck actions"
           >
-          <Button @click="handleOpenAddModal">Добавить карточку</Button>
+            <MoreVertical class="w-6 h-6" />
+          </Button>
+          <div
+            v-if="isActionsMenuOpen"
+            class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-lg"
+          >
+            <button
+              class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+              @click="handleOpenAddCardFromMenu"
+            >
+              <Plus class="w-4 h-4" />
+              Добавить карточку
+            </button>
+            <button
+              class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+              @click="handleOpenImportFromMenu"
+            >
+              <FilePlus class="w-4 h-4" />
+              Добавить много
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -466,21 +533,31 @@ const loadCards = async () => {
 
     <!-- Empty State -->
     <div v-else-if="cards.length === 0" class="text-center py-12">
-      <p class="text-gray-600 mb-4">
-        Нет карточек. Добавьте первую карточку, чтобы начать!
-      </p>
+      <p class="text-gray-600 mb-4">Карточки закончились или отсутствуют.</p>
     </div>
 
     <!-- Cards Table -->
-    <div v-else class="rounded-md border bg-white shadow-sm">
-      <Table class="max-w-full">
+    <div v-else class="rounded-md border bg-white shadow-sm overflow-x-auto">
+      <Table class="w-auto">
         <TableHeader class="bg-gray-50/50">
           <TableRow>
-            <TableHead class="w-[34%] sm:w-[30%]">Сторона 1</TableHead>
-            <TableHead class="w-[32px] text-center"></TableHead>
-            <TableHead class="w-[34%] sm:w-[30%]">Сторона 2</TableHead>
-            <TableHead class="w-[88px] sm:w-[120px]">Частота показа</TableHead>
-            <TableHead class="w-[92px] text-right">Действия</TableHead>
+            <TableHead class="">Сторона 1</TableHead>
+            <TableHead class="">Сторона 2</TableHead>
+            <TableHead class="">
+              <div class="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-4 w-4 text-gray-400 hover:text-blue-500"
+                  title="Reset all timeouts"
+                  @click="isResetAllConfirmOpen = true"
+                >
+                  <RotateCcw class="w-3 h-3 mr-3" />
+                </Button>
+                <span>Частота показа</span>
+              </div>
+            </TableHead>
+            <TableHead class="text-right">Действия</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -735,21 +812,41 @@ const loadCards = async () => {
     <AlertDialog v-model:open="isDeleteConfirmOpen">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this card?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the card
-            from your deck.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Удалить эту карточку?</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="isDeleteConfirmOpen = false"
-            >Cancel</AlertDialogCancel
+            >Отмена</AlertDialogCancel
           >
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 text-white"
             @click="confirmDelete"
           >
-            Delete Card
+            Удалить
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <!-- Reset All Timeouts Confirmation Modal -->
+    <AlertDialog v-model:open="isResetAllConfirmOpen">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Сбросить все таймауты?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Это действие сбросит следующее время показа для всех карточек в
+            колоде на текущее время. Продолжить?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="isResetAllConfirmOpen = false"
+            >Отмена</AlertDialogCancel
+          >
+          <AlertDialogAction
+            class="bg-blue-600 hover:bg-blue-700 text-white"
+            @click="handleResetAllTimeouts"
+          >
+            Сбросить
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

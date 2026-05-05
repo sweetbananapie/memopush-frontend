@@ -25,9 +25,7 @@ const handleStartSession = async () => {
       return;
     }
 
-    if (Notification.permission === "default") {
-      await Notification.requestPermission();
-    }
+    await Notification.requestPermission();
 
     if (Notification.permission !== "granted") {
       console.warn("Notifications permission not granted.");
