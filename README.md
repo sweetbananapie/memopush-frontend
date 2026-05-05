@@ -12,3 +12,12 @@ pnpm add tailwindcss @tailwindcss/vite
 
 pnpm dlx shadcn-vue@latest init --preset a3wOln72 --template vite
 ```
+
+## Чеклист куда смотреть чтоб работал sw
+
+```
+registerSW
+sw
+vite.config.ts / workbox
+tsconfig.app.json
+```

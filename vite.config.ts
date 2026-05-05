@@ -32,6 +32,14 @@ export default defineConfig({
         enabled: true,
         type: "module",
       },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: "/memopush-frontend/index.html",
+        // navigateFallbackDenylist: [/^\/api/, /^\/mobile\/api/],
+      },
       manifest: {
         name: "MemoPush",
         short_name: "MemoPush",

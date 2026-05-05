@@ -5,7 +5,7 @@ import router from "./plugins/router";
 import i18n from "./plugins/i18n";
 import setupPinia from "./plugins/pinia";
 import { vMaska } from "maska/vue";
-import { registerSW } from "virtual:pwa-register";
+import { updateSW } from "./registerSW";
 
 const app = createApp(App);
 
@@ -15,4 +15,6 @@ setupPinia(app);
 app.directive("maska", vMaska);
 app.mount("#app");
 
-registerSW({ immediate: true });
+updateSW()
+  .then(() => undefined)
+  .catch((err) => console.error("[updateSW] Ошибка обновления SW:", err));
